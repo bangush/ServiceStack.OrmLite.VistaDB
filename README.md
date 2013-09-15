@@ -3,7 +3,7 @@ ServiceStack.OrmLite.VistaDB
 
 [VistaDB](http://www.vistadb.net) provider for [ServiceStack.OrmLite micro ORM](https://github.com/ServiceStack/ServiceStack.OrmLite)
 
-Wrapper works ob both .NET Framework and Mono. 
+Wrapper works on both .NET Framework and Mono. 
 Codebase is cloned from [ServiceStack MS SQL provider (ServiceStack.OrmLite.SqlServer)](https://github.com/ServiceStack/ServiceStack.OrmLite/tree/master/src/ServiceStack.OrmLite.SqlServer) then several VistaDB specific changes are done.
 
 Repository also contains some third-party binaries:
