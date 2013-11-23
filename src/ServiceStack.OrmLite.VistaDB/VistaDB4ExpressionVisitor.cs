@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
+using System.Linq.Expressions;
 
 namespace ServiceStack.OrmLite.VistaDB
 {
-	public class VistaDBExpressionVisitor<T> : SqlExpressionVisitor<T>
+	public class VistaDB4ExpressionVisitor<T> : SqlExpressionVisitor<T>
 	{
 	    public override string ToSelectStatement()
         {
@@ -58,11 +60,11 @@ namespace ServiceStack.OrmLite.VistaDB
             foreach (var fieldDef in ModelDef.FieldDefinitions)
             {
                 if (UpdateFields.Count > 0 && !UpdateFields.Contains(fieldDef.Name) || fieldDef.AutoIncrement) 
-                    continue;
+                    continue; // added
 
                 var value = fieldDef.GetValue(item);
-                if (excludeDefaults && TypeHelper.IsDefaultValue(value)) 
-                    continue;
+                if (excludeDefaults && (value == null || value.Equals(TypeHelper.GetDefaultValue(value.GetType())))) 
+                    continue; //GetDefaultValue?
 
                 fieldDef.GetQuotedValue(item);
 
@@ -129,5 +131,20 @@ namespace ServiceStack.OrmLite.VistaDB
 				return "";
 			}
 		}
+
+        protected override object VisitColumnAccessMethod(MethodCallExpression m)
+        {
+            if (m.Arguments.Count == 1 && m.Method.Name == "Equals")
+            {
+                var caller = this.Visit(m.Object);
+                var arg = this.Visit(m.Arguments.First());
+
+                return new PartialSqlString(String.Format("{0} = {1}", caller, arg));
+            }
+            else
+            {
+                return base.VisitColumnAccessMethod(m);
+            }
+        }
 	}
 }

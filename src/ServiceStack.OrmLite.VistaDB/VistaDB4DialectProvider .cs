@@ -5,19 +5,19 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using VistaDB.Provider;
 
 namespace ServiceStack.OrmLite.VistaDB
 {
-    public class VistaDBOrmLiteDialectProvider : OrmLiteDialectProviderBase<VistaDBOrmLiteDialectProvider>
+    public class VistaDB4DialectProvider : ReflectionBasedDialectProvider<VistaDB4DialectProvider>
     {
         const string dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
 
-        public static VistaDBOrmLiteDialectProvider Instance = new VistaDBOrmLiteDialectProvider();
+        public static VistaDB4DialectProvider Instance = new VistaDB4DialectProvider();
 
         private static DateTime _timeSpanOffset = new DateTime(1900, 01, 01);
 
-        public VistaDBOrmLiteDialectProvider()
+        public VistaDB4DialectProvider()
+            : base("VistaDB.4", "VistaDB.Provider.VistaDBConnection")
         {
             base.AutoIncrementDefinition = "IDENTITY(1,1)";
             this.StringColumnDefinition = UseUnicode ? "NVARCHAR(4000)" : "VARCHAR(8000)";
@@ -58,7 +58,7 @@ namespace ServiceStack.OrmLite.VistaDB
             }
 
             return new OrmLiteVistaDbConnection(
-                new VistaDBConnection(connectionString));
+                base.CreateConnection(connectionString, options));
         }
 
         public override string ToCreateTableStatement(Type tableType)
@@ -176,7 +176,6 @@ namespace ServiceStack.OrmLite.VistaDB
                             
                         filter.AppendFormat("{0} = {1}", GetQuotedColumnName(fieldDef.FieldName), fpk[i++].GetQuotedValue(objWithProperties));
                     }
-
                 }
                 else
                 {
@@ -266,45 +265,39 @@ namespace ServiceStack.OrmLite.VistaDB
 
         public override SqlExpressionVisitor<T> ExpressionVisitor<T>()
         {
-            return new VistaDBExpressionVisitor<T>();
+            return new VistaDB4ExpressionVisitor<T>();
         }
 
         public override bool DoesTableExist(IDbCommand dbCmd, string tableName)
         {
-            var sql = "SELECT COUNT(*) FROM [database schema] WHERE typeid = 1 AND name = {0}"
+            dbCmd.CommandText = "SELECT COUNT(*) FROM [database schema] WHERE typeid = 1 AND name = {0}"
                 .SqlFormat(tableName);
 
-            dbCmd.CommandText = sql;
-            var result = dbCmd.GetLongScalar();
-
-            return result > 0;
+            return dbCmd.GetLongScalar() > 0;
         }
 
         public override bool UseUnicode
         {
-            get
-            {
-                return useUnicode;
-            }
+            get { return this.useUnicode; }
             set
             {
-                useUnicode = value;
-                if (useUnicode && this.DefaultStringLength > 4000)
+                this.useUnicode = value;
+                if (this.useUnicode && this.DefaultStringLength > 4000)
                     this.DefaultStringLength = 4000;
             }
         }
 
         public override string GetForeignKeyOnDeleteClause(ForeignKeyConstraint foreignKey)
         {
-            return "RESTRICT" == (foreignKey.OnDelete ?? "").ToUpper()
-                ? ""
+            return String.Equals("RESTRICT", foreignKey.OnDelete, StringComparison.OrdinalIgnoreCase)
+                ? String.Empty
                 : base.GetForeignKeyOnDeleteClause(foreignKey);
         }
 
         public override string GetForeignKeyOnUpdateClause(ForeignKeyConstraint foreignKey)
         {
-            return "RESTRICT" == (foreignKey.OnDelete ?? "").ToUpper()
-                ? ""
+            return String.Equals("RESTRICT", foreignKey.OnUpdate, StringComparison.OrdinalIgnoreCase)
+                ? String.Empty
                 : base.GetForeignKeyOnUpdateClause(foreignKey);
         }
 

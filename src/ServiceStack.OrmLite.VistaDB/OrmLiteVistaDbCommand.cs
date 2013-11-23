@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using VistaDB.Provider;
 
 namespace ServiceStack.OrmLite.VistaDB
 {
     public class OrmLiteVistaDbCommand : IDbCommand
     {
-        public VistaDBCommand VistaDbCommand { get; private set; }
+        public IDbCommand VistaDbCommand { get; private set; }
 
         private OrmLiteVistaDbConnection _connectionWrapper;
         private OrmLiteVistaDbTransaction _transactionWrapper;
 
-        public OrmLiteVistaDbCommand(OrmLiteVistaDbConnection connectionWrapper, VistaDBCommand vistaDbCommand)
+        public OrmLiteVistaDbCommand(OrmLiteVistaDbConnection connectionWrapper, IDbCommand vistaDbCommand)
         {
             if (connectionWrapper == null)
                 throw new ArgumentNullException("connectionWrapper");

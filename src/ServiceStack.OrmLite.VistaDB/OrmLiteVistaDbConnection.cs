@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using VistaDB.Provider;
 
 namespace ServiceStack.OrmLite.VistaDB
 {
     public class OrmLiteVistaDbConnection : IDbConnection, ICloneable
     {
-        public VistaDBConnection VistaDbConnection { get; private set; }
+        public IDbConnection VistaDbConnection { get; private set; }
 
-        public OrmLiteVistaDbConnection(VistaDBConnection conn)
+        public OrmLiteVistaDbConnection(IDbConnection conn)
         {
             if (conn == null)
                 throw new ArgumentNullException("conn");
@@ -97,7 +96,7 @@ namespace ServiceStack.OrmLite.VistaDB
         public object Clone()
         {
             var cloneable = (ICloneable) VistaDbConnection;
-            var conn = (VistaDBConnection) cloneable.Clone();
+            var conn = (IDbConnection) cloneable.Clone();
 
             return new OrmLiteVistaDbConnection(conn);
         }
